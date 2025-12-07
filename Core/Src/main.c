@@ -21,6 +21,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "lcd.h"
+#include "stm32g0xx_hal.h"
+#include "stm32g0xx_hal_gpio.h"
+#include "stm32g0xx_hal_i2c.h"
+#include "stm32g0xx_hal_uart.h"
+#include <stdint.h>
 
 /* USER CODE END Includes */
 
@@ -31,6 +37,13 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define PACKET_SIZE 8
+#define HEADER_DATA 0xFF
+
+#define BATTERY_FULL_VOLTAGE 4200
+#define BATTERY_EMPTY_VOLTAGE 3500
+#define ADC_VREF 3220
+#define VOLTAGE_DIVIDER_RATIO 43/33
 
 /* USER CODE END PD */
 
@@ -49,7 +62,26 @@ SPI_HandleTypeDef hspi1;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
+uint8_t ring_buffer[PACKET_SIZE * 10];
+uint16_t ring_buffer_head = 0;
+uint16_t ring_buffer_tail = 0;
+uint16_t ring_buffer_available = 0;
+uint8_t rx_data[PACKET_SIZE];
 
+uint8_t update_display = 0;
+
+uint8_t hr = 0;
+uint8_t hrv = 0;
+uint8_t pressure = 0;
+uint8_t emotion = 0;
+uint8_t eyemotion = 0;
+uint8_t reliability = 0;
+uint8_t battery_level = 0;
+
+uint8_t bootstr[] = "Boot Successful!\n";
+
+uint8_t liney[] = {5, 26, 47, 68, 88, 109};
+uint8_t columnx[] = {10, 50, 80, 80};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,6 +92,14 @@ static void MX_USART1_UART_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
+void Test_Perips(void);
+void System_Init(void);
+void Draw_UI(void);
+void Serial_HandleRXData(uint8_t *rxdata);
+void Update_Display();
+uint8_t Read_Battery_Level(void);
+void Enter_Sleep_Mode(void);
+void Exit_Sleep_Mode(void);
 
 /* USER CODE END PFP */
 
@@ -102,7 +142,8 @@ int main(void)
   MX_ADC1_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
-
+  Test_Perips();
+  System_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -112,6 +153,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    if (update_display) {
+      HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+      Update_Display();
+      HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+      update_display = 0;
+    }
   }
   /* USER CODE END 3 */
 }
@@ -424,7 +471,7 @@ void System_Init(void) {
   HAL_UART_Receive_IT(&huart1, rx_data, 1);
   HAL_UART_Transmit_IT(&huart1, bootstr, sizeof(bootstr));
 
-  HAL_I2C_EnableListen_IT(&hi2c2);
+  HAL_I2C_EnableListen_IT(&hi2c2)
 }
 
 /**
@@ -432,12 +479,12 @@ void System_Init(void) {
   * @retval None
   */
 void Draw_UI(void) {
-  uint8_t hr_header[] = "ï¿½ï¿½ï¿½ï¿½";
+  uint8_t hr_header[] = "ÐÄÂÊ";
   uint8_t hrv_header[] = "HRV";
-  uint8_t pressure_header[] = "Ñ¹ï¿½ï¿½";
-  uint8_t emotion_header[] = "ï¿½ï¿½ï¿½ï¿½";
-  uint8_t eyemotion_header[] = "ï¿½Û¶ï¿½";
-  uint8_t reliability_header[] = "ï¿½ï¿½ï¿½Å¶ï¿½";
+  uint8_t pressure_header[] = "Ñ¹Á¦";
+  uint8_t emotion_header[] = "ÇéÐ÷";
+  uint8_t eyemotion_header[] = "ÑÛ¶¯";
+  uint8_t reliability_header[] = "ÖÃÐÅ¶È";
 
   uint8_t bpm_str[] = "BPM";
   uint8_t ms_str[] = "ms";
@@ -495,10 +542,10 @@ void Serial_HandleRXData(uint8_t *packet) {
 }
 
 void Update_Display(void) {
-  uint8_t *pressure_strs[4] = {"ï¿½ï¿½", "ï¿½ï¿½", "ï¿½ï¿½", "ï¿½ï¿½"};
-  uint8_t *emotion_strs[9] = {"ï¿½ï¿½Å­", "ï¿½ï¿½ï¿½ï¿½", "ï¿½ï¿½ï¿?", "ï¿½Ö¾ï¿½", "ï¿½ï¿½ï¿½ï¿½", "ï¿½ï¿½ï¿½ï¿½", "ï¿½ï¿½ï¿½ï¿½", "ï¿½ï¿½ï¿½ï¿½", "Î´Öª"};
-  uint8_t *eyemotion_strs[9] = {"ï¿½ï¿½", "ï¿½I", "ï¿½ï¿½", "ï¿½J", "ï¿½ï¿½", "ï¿½K", "ï¿½ï¿½", "ï¿½L", "ï¿½ï¿½"};
-  uint8_t square_char[] = "ï¿½ï¿½";
+  uint8_t *pressure_strs[4] = {"µÍ", "ÖÐ", "¸ß", "ÎÞ"};
+  uint8_t *emotion_strs[9] = {"·ßÅ­", "ÃïÊÓ", "Ñá¶ñ", "¿Ö¾å", "¿ìÀÖ", "ÖÐÐÔ", "±¯ÉË", "¾ªÑÈ", "Î´Öª"};
+  uint8_t *eyemotion_strs[9] = {"¡û", "¨I", "¡ü", "¨J", "¡ú", "¨K", "¡ý", "¨L", "ÎÞ"};
+  uint8_t square_char[] = "¡ö";
 
   LCD_ShowIntNum(columnx[1], liney[0], hr, 3, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16);
   LCD_ShowIntNum(columnx[1], liney[1], hrv, 3, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16);
@@ -558,13 +605,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
   }
 }
 
-void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c) {
-  if (hi2c->Instance == I2C2) {
-    HAL_I2C_Slave_Receive_IT(hi2c, rx_data, PACKET_SIZE);
-    Serial_HandleRXData(rx_data);
-  }
-}
-
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
   if (huart->Instance == USART1) {
     __HAL_UART_CLEAR_OREFLAG(huart);
@@ -572,8 +612,6 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
     HAL_UART_Receive_IT(huart, rx_data, 1);
   }
 }
-
-
 
 void Test_Perips(void) {
   for(int i = 0; i < 5; i++) {
