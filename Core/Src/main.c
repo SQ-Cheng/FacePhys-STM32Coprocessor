@@ -38,12 +38,16 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define PACKET_SIZE 8
+#define RING_BUFFER_CAPACITY (PACKET_SIZE * 10)
 #define HEADER_DATA 0xFF
 
 #define BATTERY_FULL_VOLTAGE 4200
 #define BATTERY_EMPTY_VOLTAGE 3500
 #define ADC_VREF 3220
 #define VOLTAGE_DIVIDER_RATIO 43/33
+
+#define DATA_SOURCE_USART 0x00
+#define DATA_SOURCE_I2C 0x01
 
 /* USER CODE END PD */
 
@@ -62,7 +66,7 @@ SPI_HandleTypeDef hspi1;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-uint8_t ring_buffer[PACKET_SIZE * 10];
+uint8_t ring_buffer[RING_BUFFER_CAPACITY];
 uint16_t ring_buffer_head = 0;
 uint16_t ring_buffer_tail = 0;
 uint16_t ring_buffer_available = 0;
@@ -95,8 +99,8 @@ static void MX_I2C2_Init(void);
 void Test_Perips(void);
 void System_Init(void);
 void Draw_UI(void);
-void Serial_HandleRXData(uint8_t *rxdata);
-void Update_Display();
+void HandleRXData(uint8_t *rxdata, uint8_t data_source);
+void Update_Display(void);
 uint8_t Read_Battery_Level(void);
 void Enter_Sleep_Mode(void);
 void Exit_Sleep_Mode(void);
@@ -285,7 +289,7 @@ static void MX_I2C2_Init(void)
   /* USER CODE END I2C2_Init 1 */
   hi2c2.Instance = I2C2;
   hi2c2.Init.Timing = 0x10B17DB5;
-  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.OwnAddress1 = 132;
   hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c2.Init.OwnAddress2 = 0;
@@ -471,7 +475,7 @@ void System_Init(void) {
   HAL_UART_Receive_IT(&huart1, rx_data, 1);
   HAL_UART_Transmit_IT(&huart1, bootstr, sizeof(bootstr));
 
-  HAL_I2C_EnableListen_IT(&hi2c2)
+  HAL_I2C_Slave_Receive_IT(&hi2c2, rx_data, PACKET_SIZE);
 }
 
 /**
@@ -485,7 +489,7 @@ void Draw_UI(void) {
   uint8_t emotion_header[] = "ÇéÐ÷";
   uint8_t eyemotion_header[] = "ÑÛ¶¯";
   uint8_t reliability_header[] = "ÖÃÐÅ¶È";
-
+  
   uint8_t bpm_str[] = "BPM";
   uint8_t ms_str[] = "ms";
 
@@ -503,21 +507,28 @@ void Draw_UI(void) {
 
 void Ring_Buffer_Push(uint8_t *buffer, uint16_t *head, uint8_t data) {
   buffer[*head] = data;
-  *head = (*head + 1) % (PACKET_SIZE * 10);
+  *head = (*head + 1) % RING_BUFFER_CAPACITY;
   ring_buffer_available++;
 }
 
 uint8_t Ring_Buffer_Pop(uint8_t *buffer, uint16_t *tail, uint8_t *data) {
   *data = buffer[*tail];
-  *tail = (*tail + 1) % (PACKET_SIZE * 10);
+  *tail = (*tail + 1) % RING_BUFFER_CAPACITY;
   ring_buffer_available--;
   return *data;
 }
 
-void Serial_HandleRXData(uint8_t *packet) {
-  Ring_Buffer_Push(ring_buffer, &ring_buffer_head, packet[0]);
+void HandleRXData(uint8_t *packet, uint8_t data_source) {
+  if(data_source == DATA_SOURCE_USART) {
+    Ring_Buffer_Push(ring_buffer, &ring_buffer_head, packet[0]);
+  }
+  else if(data_source == DATA_SOURCE_I2C) {
+    for (uint8_t i = 0; i < PACKET_SIZE; i++) {
+      Ring_Buffer_Push(ring_buffer, &ring_buffer_head, packet[i]);
+    }
+  }
 
-  if (ring_buffer_available >= PACKET_SIZE) {
+  while (ring_buffer_available >= PACKET_SIZE) {
     uint8_t temp_packet[PACKET_SIZE];
     Ring_Buffer_Pop(ring_buffer, &ring_buffer_tail, &temp_packet[0]);
 
@@ -546,6 +557,7 @@ void Update_Display(void) {
   uint8_t *emotion_strs[9] = {"·ßÅ­", "ÃïÊÓ", "Ñá¶ñ", "¿Ö¾å", "¿ìÀÖ", "ÖÐÐÔ", "±¯ÉË", "¾ªÑÈ", "Î´Öª"};
   uint8_t *eyemotion_strs[9] = {"¡û", "¨I", "¡ü", "¨J", "¡ú", "¨K", "¡ý", "¨L", "ÎÞ"};
   uint8_t square_char[] = "¡ö";
+
 
   LCD_ShowIntNum(columnx[1], liney[0], hr, 3, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16);
   LCD_ShowIntNum(columnx[1], liney[1], hrv, 3, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16);
@@ -600,7 +612,7 @@ uint8_t Read_Battery_Level(void) {
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
   if (huart->Instance == USART1) {
-    Serial_HandleRXData(rx_data);
+    HandleRXData(rx_data, DATA_SOURCE_USART);
     HAL_UART_Receive_IT(&huart1, rx_data, 1);
   }
 }
@@ -610,6 +622,23 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
     __HAL_UART_CLEAR_OREFLAG(huart);
     HAL_UART_AbortReceive_IT(huart);
     HAL_UART_Receive_IT(huart, rx_data, 1);
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+  }
+}
+
+void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c) {
+  if (hi2c->Instance == I2C2) {
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    HandleRXData(rx_data, DATA_SOURCE_I2C);
+    HAL_I2C_Slave_Receive_IT(hi2c, rx_data, PACKET_SIZE);
+  }
+}
+
+void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
+  if (hi2c->Instance == I2C2) {
+    __HAL_I2C_CLEAR_FLAG(hi2c, I2C_FLAG_BERR);
+    HAL_I2C_Slave_Receive_IT(hi2c, rx_data, PACKET_SIZE);
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
   }
 }
 
