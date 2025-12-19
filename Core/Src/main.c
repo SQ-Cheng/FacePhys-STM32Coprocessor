@@ -498,8 +498,8 @@ void Draw_UI(void) {
   LCD_ShowString(columnx[0], liney[1], hrv_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16, 1);
   LCD_ShowChinese(columnx[0], liney[2], pressure_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16, 1);
   LCD_ShowChinese(columnx[0], liney[3], emotion_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16, 1);
-  LCD_ShowChinese(columnx[0], liney[4], eyemotion_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16, 1);
-  LCD_ShowChinese(columnx[0], liney[5], reliability_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16, 1);
+  //LCD_ShowChinese(columnx[0], liney[4], eyemotion_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16, 1);
+  LCD_ShowChinese(columnx[0], liney[4], reliability_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16, 1);
 
   LCD_ShowString(columnx[3], 5, bpm_str, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16, 1);
   LCD_ShowString(columnx[3], 26, ms_str, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16, 1);
@@ -567,21 +567,21 @@ void Update_Display(void) {
   if (emotion > 8) emotion = 8;
   LCD_ShowChinese(columnx[2], liney[3], emotion_strs[emotion], LCD_COLOR_WHITE,
                   LCD_COLOR_BLACK, 16, 0);
-  if (eyemotion > 8) eyemotion = 8;
-  LCD_ShowChinese(columnx[2], liney[4], eyemotion_strs[eyemotion], LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16, 0);
+  //if (eyemotion > 8) eyemotion = 8;
+  //LCD_ShowChinese(columnx[2], liney[4], eyemotion_strs[eyemotion], LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16, 0);
 
   switch (reliability) {
     case 0:
-      LCD_ShowChinese(columnx[2], liney[5], square_char, LCD_COLOR_GREEN, LCD_COLOR_BLACK, 16, 0);
+      LCD_ShowChinese(columnx[2], liney[4], square_char, LCD_COLOR_GREEN, LCD_COLOR_BLACK, 16, 0);
       break;
     case 1:
-      LCD_ShowChinese(columnx[2], liney[5], square_char, LCD_COLOR_YELLOW, LCD_COLOR_BLACK, 16, 0);
+      LCD_ShowChinese(columnx[2], liney[4], square_char, LCD_COLOR_YELLOW, LCD_COLOR_BLACK, 16, 0);
       break;
     case 2:
-      LCD_ShowChinese(columnx[2], liney[5], square_char, LCD_COLOR_RED, LCD_COLOR_BLACK, 16, 0);
+      LCD_ShowChinese(columnx[2], liney[4], square_char, LCD_COLOR_RED, LCD_COLOR_BLACK, 16, 0);
       break;
     default:
-      LCD_ShowChinese(columnx[2], liney[5], square_char, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16, 0);
+      LCD_ShowChinese(columnx[2], liney[4], square_char, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 16, 0);
       break;
   }
 }
@@ -628,7 +628,6 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 
 void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c) {
   if (hi2c->Instance == I2C2) {
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     HandleRXData(rx_data, DATA_SOURCE_I2C);
     HAL_I2C_Slave_Receive_IT(hi2c, rx_data, PACKET_SIZE);
   }
