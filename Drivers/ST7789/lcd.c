@@ -766,7 +766,9 @@ void LCD_ShowChar(uint16_t x, uint16_t y, uint8_t num, uint16_t fc, uint16_t bc,
       temp = ascii_1608[num][i];
     else if(sizey == 24)
       temp = ascii_2412[num][i];
-    else 
+    else if(sizey == 32)
+      temp = ascii_3216[num][i];
+    else
       return;
       
     for(t = 0; t < 8; t++)

@@ -84,8 +84,8 @@ uint8_t battery_level = 0;
 
 uint8_t bootstr[] = "Boot Successful!\n";
 
-uint8_t liney[] = {5, 30, 55, 80, 105, 130};
-uint8_t columnx[] = {10, 90, 140, 140};
+uint8_t liney[] = {5, 40, 75, 110, 145, 180};
+uint8_t columnx[] = {10, 90, 160, 160};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -494,15 +494,15 @@ void Draw_UI(void) {
   uint8_t ms_str[] = "ms";
 
 
-  LCD_ShowChinese(columnx[0], liney[0], hr_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 24, 1);
-  LCD_ShowString(columnx[0], liney[1], hrv_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 24, 1);
-  LCD_ShowChinese(columnx[0], liney[2], pressure_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 24, 1);
-  LCD_ShowChinese(columnx[0], liney[3], emotion_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 24, 1);
-  //LCD_ShowChinese(columnx[0], liney[4], eyemotion_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 24, 1);
-  LCD_ShowChinese(columnx[0], liney[4], reliability_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 24, 1);
+  LCD_ShowChinese(columnx[0], liney[0], hr_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 32, 1);
+  LCD_ShowString(columnx[0], liney[1], hrv_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 32, 1);
+  LCD_ShowChinese(columnx[0], liney[2], pressure_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 32, 1);
+  LCD_ShowChinese(columnx[0], liney[3], emotion_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 32, 1);
+  //LCD_ShowChinese(columnx[0], liney[4], eyemotion_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 32, 1);
+  LCD_ShowChinese(columnx[0], liney[4], reliability_header, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 32, 1);
 
-  LCD_ShowString(columnx[3], 5, bpm_str, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 24, 1);
-  LCD_ShowString(columnx[3], 26, ms_str, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 24, 1);
+  LCD_ShowString(columnx[3], liney[0], bpm_str, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 32, 1);
+  LCD_ShowString(columnx[3], liney[1], ms_str, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 32, 1);
 }
 
 void Ring_Buffer_Push(uint8_t *buffer, uint16_t *head, uint8_t data) {
@@ -559,29 +559,29 @@ void Update_Display(void) {
   uint8_t square_char[] = "¡ö";
 
 
-  LCD_ShowIntNum(columnx[1], liney[0], hr, 3, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 24);
-  LCD_ShowIntNum(columnx[1], liney[1], hrv, 3, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 24);
+  LCD_ShowIntNum(columnx[1], liney[0], hr, 3, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 32);
+  LCD_ShowIntNum(columnx[1], liney[1], hrv, 3, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 32);
   if  (pressure > 3) pressure = 3;
   LCD_ShowChinese(columnx[2], liney[2], pressure_strs[pressure], LCD_COLOR_WHITE,
-                  LCD_COLOR_BLACK, 24, 0);
+                  LCD_COLOR_BLACK, 32, 0);
   if (emotion > 8) emotion = 8;
   LCD_ShowChinese(columnx[2], liney[3], emotion_strs[emotion], LCD_COLOR_WHITE,
-                  LCD_COLOR_BLACK, 24, 0);
+                  LCD_COLOR_BLACK, 32, 0);
   //if (eyemotion > 8) eyemotion = 8;
-  //LCD_ShowChinese(columnx[2], liney[4], eyemotion_strs[eyemotion], LCD_COLOR_WHITE, LCD_COLOR_BLACK, 24, 0);
+  //LCD_ShowChinese(columnx[2], liney[4], eyemotion_strs[eyemotion], LCD_COLOR_WHITE, LCD_COLOR_BLACK, 32, 0);
 
   switch (reliability) {
     case 0:
-      LCD_ShowChinese(columnx[2], liney[4], square_char, LCD_COLOR_GREEN, LCD_COLOR_BLACK, 24, 0);
+      LCD_ShowChinese(columnx[2], liney[4], square_char, LCD_COLOR_GREEN, LCD_COLOR_BLACK, 32, 0);
       break;
     case 1:
-      LCD_ShowChinese(columnx[2], liney[4], square_char, LCD_COLOR_YELLOW, LCD_COLOR_BLACK, 24, 0);
+      LCD_ShowChinese(columnx[2], liney[4], square_char, LCD_COLOR_YELLOW, LCD_COLOR_BLACK, 32, 0);
       break;
     case 2:
-      LCD_ShowChinese(columnx[2], liney[4], square_char, LCD_COLOR_RED, LCD_COLOR_BLACK, 24, 0);
+      LCD_ShowChinese(columnx[2], liney[4], square_char, LCD_COLOR_RED, LCD_COLOR_BLACK, 32, 0);
       break;
     default:
-      LCD_ShowChinese(columnx[2], liney[4], square_char, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 24, 0);
+      LCD_ShowChinese(columnx[2], liney[4], square_char, LCD_COLOR_WHITE, LCD_COLOR_BLACK, 32, 0);
       break;
   }
 }
@@ -647,7 +647,7 @@ void Test_Perips(void) {
     HAL_Delay(200);
   }
   HAL_GPIO_WritePin(FAN_GPIO_Port, FAN_Pin, GPIO_PIN_RESET);
-  HAL_Delay(2000);
+  HAL_Delay(200);
   HAL_GPIO_WritePin(FAN_GPIO_Port, FAN_Pin, GPIO_PIN_SET);
 }
 
