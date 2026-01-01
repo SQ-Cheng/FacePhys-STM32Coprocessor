@@ -120,55 +120,13 @@ void LCD_Init(void)
   LCD_RST_SET();
   HAL_Delay(100);
   
-  /* Enable backlight */
-  LCD_BL_SET();
+  /* Disable backlight */
+  LCD_BL_CLR();
   HAL_Delay(100);
   
   /* Start Initial Sequence */
   LCD_WR_REG(0x11); /* Sleep out */
   HAL_Delay(120);    /* Delay 120ms */
-  
-  /* ST7735S Frame Rate configuration */
-  LCD_WR_REG(0xB1); 
-  LCD_WR_DATA8(0x05); 
-  LCD_WR_DATA8(0x3C); 
-  LCD_WR_DATA8(0x3C); 
-  LCD_WR_REG(0xB2); 
-  LCD_WR_DATA8(0x05);
-  LCD_WR_DATA8(0x3C); 
-  LCD_WR_DATA8(0x3C); 
-  LCD_WR_REG(0xB3); 
-  LCD_WR_DATA8(0x05); 
-  LCD_WR_DATA8(0x3C); 
-  LCD_WR_DATA8(0x3C); 
-  LCD_WR_DATA8(0x05); 
-  LCD_WR_DATA8(0x3C); 
-  LCD_WR_DATA8(0x3C); 
-  
-  /* Dot inversion */
-  LCD_WR_REG(0xB4);
-  LCD_WR_DATA8(0x03); 
-  
-  /* ST7735S Power Sequence */
-  LCD_WR_REG(0xC0); 
-  LCD_WR_DATA8(0x28); 
-  LCD_WR_DATA8(0x08); 
-  LCD_WR_DATA8(0x04); 
-  LCD_WR_REG(0xC1); 
-  LCD_WR_DATA8(0XC0); 
-  LCD_WR_REG(0xC2); 
-  LCD_WR_DATA8(0x0D); 
-  LCD_WR_DATA8(0x00); 
-  LCD_WR_REG(0xC3); 
-  LCD_WR_DATA8(0x8D); 
-  LCD_WR_DATA8(0x2A); 
-  LCD_WR_REG(0xC4); 
-  LCD_WR_DATA8(0x8D); 
-  LCD_WR_DATA8(0xEE); 
-  
-  /* VCOM configuration */
-  LCD_WR_REG(0xC5);
-  LCD_WR_DATA8(0x1A); 
   
   /* Memory access control - orientation setting */
   LCD_WR_REG(0x36);
@@ -179,47 +137,85 @@ void LCD_Init(void)
   else if(USE_HORIZONTAL == LCD_ORIENTATION_LANDSCAPE_1)
     LCD_WR_DATA8(0x70);
   else 
-    LCD_WR_DATA8(0xA0); 
-  
-  /* ST7735S Gamma Sequence */
-  LCD_WR_REG(0xE0); 
-  LCD_WR_DATA8(0x04); 
-  LCD_WR_DATA8(0x22); 
-  LCD_WR_DATA8(0x07); 
-  LCD_WR_DATA8(0x0A); 
-  LCD_WR_DATA8(0x2E); 
-  LCD_WR_DATA8(0x30); 
-  LCD_WR_DATA8(0x25); 
-  LCD_WR_DATA8(0x2A); 
-  LCD_WR_DATA8(0x28); 
-  LCD_WR_DATA8(0x26); 
-  LCD_WR_DATA8(0x2E); 
-  LCD_WR_DATA8(0x3A); 
-  LCD_WR_DATA8(0x00); 
-  LCD_WR_DATA8(0x01); 
-  LCD_WR_DATA8(0x03); 
-  LCD_WR_DATA8(0x13); 
-  LCD_WR_REG(0xE1); 
-  LCD_WR_DATA8(0x04); 
-  LCD_WR_DATA8(0x16); 
-  LCD_WR_DATA8(0x06); 
-  LCD_WR_DATA8(0x0D); 
-  LCD_WR_DATA8(0x2D); 
-  LCD_WR_DATA8(0x26); 
-  LCD_WR_DATA8(0x23); 
-  LCD_WR_DATA8(0x27); 
-  LCD_WR_DATA8(0x27); 
-  LCD_WR_DATA8(0x25); 
-  LCD_WR_DATA8(0x2D); 
-  LCD_WR_DATA8(0x3B); 
-  LCD_WR_DATA8(0x00); 
-  LCD_WR_DATA8(0x01); 
-  LCD_WR_DATA8(0x04); 
-  LCD_WR_DATA8(0x13); 
+    LCD_WR_DATA8(0xA0);
   
   /* Color mode - 65K mode */
   LCD_WR_REG(0x3A);
-  LCD_WR_DATA8(0x05); 
+  LCD_WR_DATA8(0x05);
+  
+  /* Porch Setting */
+  LCD_WR_REG(0xB2);
+  LCD_WR_DATA8(0x0C);
+  LCD_WR_DATA8(0x0C);
+  LCD_WR_DATA8(0x00);
+  LCD_WR_DATA8(0x33);
+  LCD_WR_DATA8(0x33);
+  
+  /* Gate Control */
+  LCD_WR_REG(0xB7);
+  LCD_WR_DATA8(0x35);
+  
+  /* VCOM Setting */
+  LCD_WR_REG(0xBB);
+  LCD_WR_DATA8(0x32);
+  
+  /* LCM Control */
+  LCD_WR_REG(0xC2);
+  LCD_WR_DATA8(0x01);
+  
+  /* VDV and VRH Command Enable */
+  LCD_WR_REG(0xC3);
+  LCD_WR_DATA8(0x15);
+  
+  /* VDV Set */
+  LCD_WR_REG(0xC4);
+  LCD_WR_DATA8(0x20);
+  
+  /* Frame Rate Control */
+  LCD_WR_REG(0xC6);
+  LCD_WR_DATA8(0x0F);
+  
+  /* Power Control */
+  LCD_WR_REG(0xD0);
+  LCD_WR_DATA8(0xA4);
+  LCD_WR_DATA8(0xA1);
+  
+  /* Positive Voltage Gamma Control */
+  LCD_WR_REG(0xE0);
+  LCD_WR_DATA8(0xD0);
+  LCD_WR_DATA8(0x08);
+  LCD_WR_DATA8(0x0E);
+  LCD_WR_DATA8(0x09);
+  LCD_WR_DATA8(0x09);
+  LCD_WR_DATA8(0x05);
+  LCD_WR_DATA8(0x31);
+  LCD_WR_DATA8(0x33);
+  LCD_WR_DATA8(0x48);
+  LCD_WR_DATA8(0x17);
+  LCD_WR_DATA8(0x14);
+  LCD_WR_DATA8(0x15);
+  LCD_WR_DATA8(0x31);
+  LCD_WR_DATA8(0x34);
+  
+  /* Negative Voltage Gamma Control */
+  LCD_WR_REG(0xE1);
+  LCD_WR_DATA8(0xD0);
+  LCD_WR_DATA8(0x08);
+  LCD_WR_DATA8(0x0E);
+  LCD_WR_DATA8(0x09);
+  LCD_WR_DATA8(0x09);
+  LCD_WR_DATA8(0x15);
+  LCD_WR_DATA8(0x31);
+  LCD_WR_DATA8(0x33);
+  LCD_WR_DATA8(0x48);
+  LCD_WR_DATA8(0x17);
+  LCD_WR_DATA8(0x14);
+  LCD_WR_DATA8(0x15);
+  LCD_WR_DATA8(0x31);
+  LCD_WR_DATA8(0x34);
+  
+  /* Display Inversion On */
+  LCD_WR_REG(0x21);
   
   /* Display on */
   LCD_WR_REG(0x29);
@@ -304,9 +300,11 @@ void LCD_WR_REG(uint8_t dat)
   */
 void LCD_Address_Set(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
   LCD_WR_REG(0x2A); /* Column address set */
-  LCD_WR_DATA32((x1+1)<<16|(x2+1)); // For 32-bit data write
+  LCD_WR_DATA(x1);
+  LCD_WR_DATA(x2);
   LCD_WR_REG(0x2B); /* Row address set */
-  LCD_WR_DATA32((y1+3)<<16|(y2+3)); // For 32-bit data write
+  LCD_WR_DATA(y1);
+  LCD_WR_DATA(y2);
   LCD_WR_REG(0x2C); /* Memory write */
 }
 

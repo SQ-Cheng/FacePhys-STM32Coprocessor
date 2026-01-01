@@ -69,14 +69,14 @@ extern "C" {
 /** @defgroup LCD_Configuration LCD Configuration
   * @{
   */
-#define USE_HORIZONTAL                LCD_ORIENTATION_PORTRAIT_2  /*!< Set display orientation */
+#define USE_HORIZONTAL                LCD_ORIENTATION_PORTRAIT_1  /*!< Set display orientation */
 
 #if USE_HORIZONTAL == LCD_ORIENTATION_PORTRAIT_1 || USE_HORIZONTAL == LCD_ORIENTATION_PORTRAIT_2
-#define LCD_WIDTH                     128U  /*!< LCD width in portrait mode */
-#define LCD_HEIGHT                    128U  /*!< LCD height in portrait mode */
+#define LCD_WIDTH                     240U  /*!< LCD width in portrait mode */
+#define LCD_HEIGHT                    320U  /*!< LCD height in portrait mode */
 #else
-#define LCD_WIDTH                     128U  /*!< LCD width in landscape mode */
-#define LCD_HEIGHT                    128U  /*!< LCD height in landscape mode */
+#define LCD_WIDTH                     320U  /*!< LCD width in landscape mode */
+#define LCD_HEIGHT                    240U  /*!< LCD height in landscape mode */
 #endif
 /**
   * @}
