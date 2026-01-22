@@ -65,11 +65,11 @@ typedef struct {
 #define LCD_COLOR_BRED                0xF81FU   /*!< Bright red color */
 #define LCD_COLOR_GRED                0xFFE0U   /*!< Green-red color */
 #define LCD_COLOR_GBLUE               0x07FFU   /*!< Green-blue color */
-#define LCD_COLOR_RED                 0x001FU   /*!< Red color */
+#define LCD_COLOR_RED                 0xF800U   /*!< Red color */
 #define LCD_COLOR_MAGENTA             0xF81FU   /*!< Magenta color */
 #define LCD_COLOR_GREEN               0x07E0U   /*!< Green color */
 #define LCD_COLOR_CYAN                0x7FFFU   /*!< Cyan color */
-#define LCD_COLOR_YELLOW              0x06BFU   /*!< Yellow color */
+#define LCD_COLOR_YELLOW              0xFFE0U   /*!< Yellow color */
 #define LCD_COLOR_BROWN               0xBC40U   /*!< Brown color */
 #define LCD_COLOR_BRRED               0xFC07U   /*!< Bright red color */
 #define LCD_COLOR_GRAY                0x8430U   /*!< Gray color */
